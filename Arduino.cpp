@@ -24,6 +24,8 @@ byte* PCmem;
 inst* mem;
 inst* ins;
 
+int i = 0;
+bool called = false;
 String in;
 
 void setup(){
@@ -42,10 +44,11 @@ void setup(){
 
     // ____INICIO DO PROGRAMA____
 
-    Serial.println("insira as instrucoes para a carga do vetor:");
+    Serial.println("(*ins)ira as instrucoes para a carga do vetor:");
 
     // LAURA SUA PARTE AQUI
 
+    //execProgram();
 }
 
 void execInst(){
@@ -69,37 +72,56 @@ void execInst(){
     else if((*ins).p3==0xE) W = X | Y;
     else if((*ins).p3==0xF) W = X & X;
     else{
-        Serial.println("instrucao desconhecida");
+        Serial.println("(*ins)trucao desconhecida");
         W = 0x0;
     }
 }
 
 void execProgram(){
     PC = 4;
-    while(PC<=100){
-        //ins = &mem[PC];
-        (*ins) = new inst();
-        execInst();
-        digitalWrite(led0, LOW);
-        digitalWrite(led1, LOW);
-        digitalWrite(led2, LOW);
-        digitalWrite(led3, LOW);
-        if((W&0b1000)==0b1000) digitalWrite(led0, HIGH);
-        if((W&0b0100)==0b0100) digitalWrite(led0, HIGH);
-        if((W&0b0010)==0b0010) digitalWrite(led0, HIGH);
-        if((W&0b0001)==0b0001) digitalWrite(led0, HIGH);
-    }
+    /*
+     *    while(PC<=100){
+     *        //ins = &mem[PC];
+     *        (*ins) = new inst();
+     *        execInst();
+     *        digitalWrite(led0, LOW);
+     *        digitalWrite(led1, LOW);
+     *        digitalWrite(led2, LOW);
+     *        digitalWrite(led3, LOW);
+     *        if((W&0b1000)==0b1000) digitalWrite(led0, HIGH);
+     *        if((W&0b0100)==0b0100) digitalWrite(led0, HIGH);
+     *        if((W&0b0010)==0b0010) digitalWrite(led0, HIGH);
+     *        if((W&0b0001)==0b0001) digitalWrite(led0, HIGH);
+}
+*/
+
+    ins = new inst();
+    execInst();
+    digitalWrite(led0, LOW);
+    digitalWrite(led1, LOW);
+    digitalWrite(led2, LOW);
+    digitalWrite(led3, LOW);
+    if((W&0b1000)==0b1000) digitalWrite(led0, HIGH);
+    if((W&0b0100)==0b0100) digitalWrite(led0, HIGH);
+    if((W&0b0010)==0b0010) digitalWrite(led0, HIGH);
+    if((W&0b0001)==0b0001) digitalWrite(led0, HIGH);
 
 }
 
 void loop(){
+    Serial.println("Flag");
+    while(i<3 && Serial.available()>0){
+        in = Serial.readStringUntil(' ');
 
+        Serial.print("--");
+        Serial.print(in);
+        Serial.println("--");
 
-    while(Serial.available()>0){
-        in = Serial.readString();
-
-        Serial.println(in);
-
+        i++;
+    }
+    if(!called && i>96){
+        execProgram();
+        called = true;
     }
 }
 
