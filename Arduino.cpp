@@ -1,4 +1,4 @@
-#define led0 10
+#define led1 10
 #define led1 11
 #define led2 12
 #define led3 13
@@ -44,7 +44,7 @@ void setup(){
 
     // ____INICIO DO PROGRAMA____
 
-    Serial.println("(*ins)ira as instrucoes para a carga do vetor:");
+    Serial.println("Insira as instrucoes para a carga do vetor:");
 
     // LAURA SUA PARTE AQUI
 
@@ -72,29 +72,30 @@ void execInst(){
     else if((*ins).p3==0xE) W = X | Y;
     else if((*ins).p3==0xF) W = X & X;
     else{
-        Serial.println("(*ins)trucao desconhecida");
+        Serial.println("Instrucao desconhecida");
         W = 0x0;
     }
 }
 
 void execProgram(){
     PC = 4;
-    /*
-     *    while(PC<=100){
-     *        //ins = &mem[PC];
-     *        (*ins) = new inst();
-     *        execInst();
-     *        digitalWrite(led0, LOW);
-     *        digitalWrite(led1, LOW);
-     *        digitalWrite(led2, LOW);
-     *        digitalWrite(led3, LOW);
-     *        if((W&0b1000)==0b1000) digitalWrite(led0, HIGH);
-     *        if((W&0b0100)==0b0100) digitalWrite(led0, HIGH);
-     *        if((W&0b0010)==0b0010) digitalWrite(led0, HIGH);
-     *        if((W&0b0001)==0b0001) digitalWrite(led0, HIGH);
-}
-*/
+    while(PC<=100){
+        //ins = &mem[PC];
+        (*ins) = new inst();
+        execInst();
+        digitalWrite(led0, LOW);
+        digitalWrite(led1, LOW);
+        digitalWrite(led2, LOW);
+        digitalWrite(led3, LOW);
+        if((W&0b1000)==0b1000) digitalWrite(led0, HIGH);
+        if((W&0b0100)==0b0100) digitalWrite(led0, HIGH);
+        if((W&0b0010)==0b0010) digitalWrite(led0, HIGH);
+        if((W&0b0001)==0b0001) digitalWrite(led0, HIGH);
+        PC++;
+        printMem();
+    }
 
+    /*
     ins = new inst();
     execInst();
     digitalWrite(led0, LOW);
@@ -105,6 +106,7 @@ void execProgram(){
     if((W&0b0100)==0b0100) digitalWrite(led0, HIGH);
     if((W&0b0010)==0b0010) digitalWrite(led0, HIGH);
     if((W&0b0001)==0b0001) digitalWrite(led0, HIGH);
+    */
 
 }
 
