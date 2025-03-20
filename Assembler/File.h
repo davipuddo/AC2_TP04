@@ -55,11 +55,14 @@ class File
 			{
 				int n = list->getSize();
 
-				for (int i = 0; i < n; i++)
+				for (int i = 0; i < n-1; i++)
 				{
 					fs << list->remove();
 					fs << "\n";
 				}
+				char* last = list->remove();
+				strcat(last, " ");
+				fs << last;
 			}
 		}
 	}
