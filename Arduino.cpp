@@ -4,31 +4,45 @@
 #define led3 13
 
 #define PC *PCmem
-#define W mem[1].p1
-#define X mem[2].p1
-#define Y mem[3].p1
+#define W mem[1]->p1
+#define X mem[2]->p1
+#define Y mem[3]->p1
 
 struct inst{
-    byte p1 : 4;
-    byte p2 : 4;
     byte p3 : 4;
+    byte p2 : 4;
+    byte p1 : 4;
 
     inst(){
         p1 = 0xB;
         p2 = 0xC;
         p3 = 0xB;
     }
+  
+  	inst(char ca, char cb, char cc){
+      	byte cca, ccb, ccc;
+    	if(ca>='A' && ca<='F') cca = ca - 55; // from char to hexa
+      	else cca = ca - 48;
+      	if(cb>='A' && cb<='F') ccb = cb - 55; // from char to hexa
+      	else ccb = cb - 48;
+      	if(cc>='A' && cc<='F') ccc = cc - 55; // from char to hexa
+      	else ccc = cc - 48;
+		p1 = cca & 0x0F;
+		p2 = ccb & 0x0F;
+		p3 = ccc & 0x0F;
+    }
 };
 
 static bool step = false;
-static int delaySec = 3;
+static int waitSecs = 4;
 
 byte* PCmem;
-inst* mem;
+inst** mem;
 inst* ins;
 
+int progSize = 0;
+
 int i = 0;
-bool called = false;
 String in;
 
 void setup(){
@@ -39,23 +53,24 @@ void setup(){
 
     Serial.begin(9600);
 
-    mem = new inst[100];
+    mem = new inst*[100];
+  	for(int u=0; u<100; u++){
+    	mem[u] = new inst('0', '0', '0');
+    }
     PCmem = (byte*)((void*)&(mem[0]));
-
-    mem[4].p1 = 0xB1;
-    Serial.println(mem[4].p1, HEX);
-
-    // ____INICIO DO PROGRAMA____
-
-
-    // LAURA SUA PARTE AQUI
-
-    //execProgram();
+  
+  	/*
+  	PC = 0x04;
+  	PC = PC + 0x01;
+  	dumpReg();
+    Serial.println(PC);
+    */
+	Serial.println("Insira as instrucoes para a carga do vetor:");
 }
 
 void execInst(){
-    X = (*ins).p1;
-    Y = (*ins).p2;
+    X = ins->p1;
+    Y = ins->p2;
 
     if((*ins).p3==0x0) W = 0x0;
     else if((*ins).p3==0x1) W = 0x1;
@@ -79,10 +94,39 @@ void execInst(){
     }
 }
 
+void dumpReg(){
+  	for(int u=0; u<4; u++){
+    	if(mem[u]->p1 < 10) Serial.print(mem[u]->p1);
+      	else Serial.print((char)(mem[u]->p1 + 55));
+      	if(mem[u]->p2 < 10) Serial.print(mem[u]->p2);
+      	else Serial.print((char)(mem[u]->p2 + 55));
+      	if(mem[u]->p3 < 10) Serial.print(mem[u]->p3);
+      	else Serial.print((char)(mem[u]->p3 + 55));
+      	Serial.print(" | ");
+    }
+  Serial.println("");
+}
+
+void dumpMem(){
+  	for(int u=0; u<100; u++){
+    	if(mem[u]->p1 < 10) Serial.print(mem[u]->p1);
+      	else Serial.print((char)(mem[u]->p1 + 55));
+      	if(mem[u]->p2 < 10) Serial.print(mem[u]->p2);
+      	else Serial.print((char)(mem[u]->p2 + 55));
+      	if(mem[u]->p3 < 10) Serial.print(mem[u]->p3);
+      	else Serial.print((char)(mem[u]->p3 + 55));
+      	Serial.print(" | ");
+    }
+  Serial.println("");
+}
+
 void execProgram(){
-    PC = 4;
-    while(PC<=100){
-        ins = &mem[PC];
+    PC = 0x04;
+    while(PC<=progSize){
+      	Serial.print("PC(");
+        Serial.print(PC);
+      	Serial.print(") ");
+        ins = mem[PC];
         //ins = new inst();
         execInst();
         digitalWrite(led0, LOW);
@@ -90,32 +134,49 @@ void execProgram(){
         digitalWrite(led2, LOW);
         digitalWrite(led3, LOW);
         if((W&0b1000)==0b1000) digitalWrite(led0, HIGH);
-        if((W&0b0100)==0b0100) digitalWrite(led0, HIGH);
-        if((W&0b0010)==0b0010) digitalWrite(led0, HIGH);
-        if((W&0b0001)==0b0001) digitalWrite(led0, HIGH);
-        PC++;
+        if((W&0b0100)==0b0100) digitalWrite(led1, HIGH);
+        if((W&0b0010)==0b0010) digitalWrite(led2, HIGH);
+        if((W&0b0001)==0b0001) digitalWrite(led3, HIGH);
+        PC = PC + 0x01;
       	if(step){
           	while(Serial.available()==0){}
 			char x = Serial.read();
         }
-      	delay(delaySec*1000);
+      	dumpMem();
+      	delay(waitSecs * 1000);
     }
 }
 
+void loadMem(){
+	int reps = in.length(),
+  		progPos = 4;
+  	char a = '0',
+  		 b = '0',
+  		 c = '0';
+	for(int j=0; j<reps; j++){
+		if(j%4==0) a = in.charAt(j);
+      	else if(j%4==1) b = in.charAt(j);
+        else if(j%4==2) c = in.charAt(j);
+        else mem[progPos++] = new inst(a, b, c);
+    }
+  	progSize = progPos - 1;
+}
+
 void loop(){
-    //Serial.println("Flag");
     while(Serial.available()>0){
-        Serial.println("Insira as instrucoes para a carga do vetor:");
         in = Serial.readStringUntil('\0');
-      	/*
-        	quebrar input em instruções e
-        	carregar memoria
-        */
-      	//execProg();
+      
+      	//Serial.println(in.length());
+      	
+      	loadMem();
+      	//Serial.println(progSize);
+      	//dumpMem();
+      	execProgram();
 
-        Serial.print("--");
-        Serial.print(in);
-        Serial.println("--");
-
+        //Serial.print("--");
+        //Serial.print(in);
+        //Serial.println("--");
+      
+        Serial.println("Insira as instrucoes para a carga do vetor:");
     }
 }
