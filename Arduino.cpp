@@ -1,4 +1,4 @@
-#define led1 10
+#define led0 10
 #define led1 11
 #define led2 12
 #define led3 13
@@ -19,6 +19,9 @@ struct inst{
         p3 = 0xB;
     }
 };
+
+static bool step = false;
+static int delaySec = 3;
 
 byte* PCmem;
 inst* mem;
@@ -44,7 +47,6 @@ void setup(){
 
     // ____INICIO DO PROGRAMA____
 
-    Serial.println("Insira as instrucoes para a carga do vetor:");
 
     // LAURA SUA PARTE AQUI
 
@@ -80,8 +82,8 @@ void execInst(){
 void execProgram(){
     PC = 4;
     while(PC<=100){
-        //ins = &mem[PC];
-        (*ins) = new inst();
+        ins = &mem[PC];
+        //ins = new inst();
         execInst();
         digitalWrite(led0, LOW);
         digitalWrite(led1, LOW);
@@ -92,38 +94,28 @@ void execProgram(){
         if((W&0b0010)==0b0010) digitalWrite(led0, HIGH);
         if((W&0b0001)==0b0001) digitalWrite(led0, HIGH);
         PC++;
-        printMem();
+      	if(step){
+          	while(Serial.available()==0){}
+			char x = Serial.read();
+        }
+      	delay(delaySec*1000);
     }
-
-    /*
-    ins = new inst();
-    execInst();
-    digitalWrite(led0, LOW);
-    digitalWrite(led1, LOW);
-    digitalWrite(led2, LOW);
-    digitalWrite(led3, LOW);
-    if((W&0b1000)==0b1000) digitalWrite(led0, HIGH);
-    if((W&0b0100)==0b0100) digitalWrite(led0, HIGH);
-    if((W&0b0010)==0b0010) digitalWrite(led0, HIGH);
-    if((W&0b0001)==0b0001) digitalWrite(led0, HIGH);
-    */
-
 }
 
 void loop(){
-    Serial.println("Flag");
-    while(i<3 && Serial.available()>0){
-        in = Serial.readStringUntil(' ');
+    //Serial.println("Flag");
+    while(Serial.available()>0){
+        Serial.println("Insira as instrucoes para a carga do vetor:");
+        in = Serial.readStringUntil('\0');
+      	/*
+        	quebrar input em instruções e
+        	carregar memoria
+        */
+      	//execProg();
 
         Serial.print("--");
         Serial.print(in);
         Serial.println("--");
 
-        i++;
-    }
-    if(!called && i>96){
-        execProgram();
-        called = true;
     }
 }
-
