@@ -8,6 +8,11 @@
 #define X mem[2]->p1
 #define Y mem[3]->p1
 
+//___ Execution Control ___
+static bool step = false;
+static int waitSecs = 4;
+//_________________________
+
 struct inst{
     byte p3 : 4;
     byte p2 : 4;
@@ -33,9 +38,6 @@ struct inst{
     }
 };
 
-static bool step = false;
-static int waitSecs = 4;
-
 byte* PCmem;
 inst** mem;
 inst* ins;
@@ -59,12 +61,6 @@ void setup(){
     }
     PCmem = (byte*)((void*)&(mem[0]));
   
-  	/*
-  	PC = 0x04;
-  	PC = PC + 0x01;
-  	dumpReg();
-    Serial.println(PC);
-    */
 	Serial.println("Insira as instrucoes para a carga do vetor:");
 }
 
@@ -94,6 +90,35 @@ void execInst(){
     }
 }
 
+void execProgram(){
+    PC = 0x04;
+    while(PC<=progSize){
+      	Serial.print("PC(");
+        Serial.print(PC);
+      	Serial.print(") ");
+        ins = mem[PC];
+        //ins = new inst();
+        execInst();
+        digitalWrite(led0, LOW);
+        digitalWrite(led1, LOW);
+        digitalWrite(led2, LOW);
+        digitalWrite(led3, LOW);
+        if((W&0b1000)==0b1000) digitalWrite(led0, HIGH);
+        if((W&0b0100)==0b0100) digitalWrite(led1, HIGH);
+        if((W&0b0010)==0b0010) digitalWrite(led2, HIGH);
+        if((W&0b0001)==0b0001) digitalWrite(led3, HIGH);
+        PC = PC + 0x01;
+      	dumpMem();
+      	if(step){
+          	Serial.println("Step");
+          	while(Serial.available()==0){}
+			char x = Serial.read();
+          	delay(300);
+        }
+      	else delay(waitSecs * 1000);
+    }
+}
+
 void dumpReg(){
   	for(int u=0; u<4; u++){
     	if(mem[u]->p1 < 10) Serial.print(mem[u]->p1);
@@ -120,33 +145,6 @@ void dumpMem(){
   Serial.println("");
 }
 
-void execProgram(){
-    PC = 0x04;
-    while(PC<=progSize){
-      	Serial.print("PC(");
-        Serial.print(PC);
-      	Serial.print(") ");
-        ins = mem[PC];
-        //ins = new inst();
-        execInst();
-        digitalWrite(led0, LOW);
-        digitalWrite(led1, LOW);
-        digitalWrite(led2, LOW);
-        digitalWrite(led3, LOW);
-        if((W&0b1000)==0b1000) digitalWrite(led0, HIGH);
-        if((W&0b0100)==0b0100) digitalWrite(led1, HIGH);
-        if((W&0b0010)==0b0010) digitalWrite(led2, HIGH);
-        if((W&0b0001)==0b0001) digitalWrite(led3, HIGH);
-        PC = PC + 0x01;
-      	if(step){
-          	while(Serial.available()==0){}
-			char x = Serial.read();
-        }
-      	dumpMem();
-      	delay(waitSecs * 1000);
-    }
-}
-
 void loadMem(){
 	int reps = in.length(),
   		progPos = 4;
@@ -165,17 +163,9 @@ void loadMem(){
 void loop(){
     while(Serial.available()>0){
         in = Serial.readStringUntil('\0');
-      
-      	//Serial.println(in.length());
-      	
-      	loadMem();
-      	//Serial.println(progSize);
-      	//dumpMem();
-      	execProgram();
 
-        //Serial.print("--");
-        //Serial.print(in);
-        //Serial.println("--");
+      	loadMem();
+      	execProgram();
       
         Serial.println("Insira as instrucoes para a carga do vetor:");
     }
