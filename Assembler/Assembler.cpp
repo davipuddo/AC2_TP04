@@ -7,8 +7,8 @@
 #include <cstdint>
 
 #define byte uint8_t
-#define X mem[0]
-#define Y mem[1]
+#define A mem[0]
+#define B mem[1]
 #define W mem[2]
 
 class Assembler
@@ -17,6 +17,7 @@ class Assembler
 	List* input;
 	List* output;
 	byte* mem;
+	bool tick;
 
 	public:
 
@@ -24,6 +25,7 @@ class Assembler
 	{
 		input = NULL;
 		output = NULL;
+		tick = false;
 
 		mem = new byte[3];
 
@@ -139,13 +141,13 @@ class Assembler
 
 			byte* cursor = NULL;
 
-			if (line[0] == 'X' || line[0] == 'x')
+			if (line[0] == 'A' || line[0] == 'a')
 			{
-				cursor = &X;
+				cursor = &A;
 			}
-			else if (line[0] == 'Y' || line[0] == 'y')
+			else if (line[0] == 'B' || line[0] == 'b')
 			{
-				cursor = &Y;
+				cursor = &B;
 			}
 			else if (line[0] == 'W' || line[0] == 'w')
 			{
@@ -194,6 +196,7 @@ class Assembler
 				f = i;
 
 				*cursor = getInstruction (line, s, f);
+				tick = true;
 			}
 		}
 	}
@@ -206,20 +209,19 @@ class Assembler
 
 		for (int i = 1; i < n; i++)
 		{
-			byte wg = W;
-
 			char* line_in = input->get(i);
 
 			assemble(line_in);
 
-			if (wg != W)
+			if (tick)
 			{
+				tick = false;
 				char* line_out = new char[8];
-				snprintf (line_out, 8, "%1X%1X%1X", X,Y,W);
+				snprintf (line_out, 8, "%1X%1X%1X", A,B,W);
 				output->insert(line_out);
 			}
 
-			delete(line_in);
+			delete (line_in);
 		}
 	}
 
