@@ -14,102 +14,114 @@
 class Assembler
 {
 	private:
-	List* input;
-	List* output;
+
+	// Atributos
+	List* input;  // Linhas de entrada
+	List* output; // Linhas de saida
 	byte* mem;
-	bool tick;
+	bool tick;    // W atualizado
 
 	public:
 
-	Assembler (const char* filename)
+	// Construtor
+	Assembler (const char* filename) 
 	{
 		input = NULL;
 		output = NULL;
 		tick = false;
 
-		mem = new byte[3];
+		mem = new byte[3](); // mem[0] = A; mem[1] = B; mem[2] = W;
 
 		for (int i = 0; i < 3; i++)
 		{
 			mem[i] = 0x0;
 		}
 
-		if (filename != "")
+		if (filename)
 		{
-			File* f = new File(filename);
-			input = f->read();
+			File* f = new File(filename); // Le arquivo
+			input = f->read(); // Recebe dados
 		}
 	}
 
+	// Destrutor
+	~Assembler ()
+	{
+		if (input)
+		{
+			delete(input);
+			input = NULL;
+		}
+		if (output)
+		{
+			delete(output);
+			output = NULL;
+		}
+		if (mem)
+		{
+			delete(mem);
+			mem = NULL;
+		}
+	}
+
+	// Gravar saida no arquivo
 	void Export (const char* filename)
 	{
-		if (filename != "")
+		if (filename)
 		{
 			File* f = new File(filename);
 			f->write(output);
 		}
 	}
 
-	List* getInput (void)
-	{
-		return (input->clone());
-	}
-
-	List* getOutput (void)
-	{
-		return (output->clone());
-	}
-
-	void printMem (void)
-	{
-		for (int i = 0; i < 3; i++)
-		{
-			printf ("[%u] ", mem[i]);
-		}
-		std::cout << "\n";
-	}
-
+	// Checar se e numero
 	bool isNumber (char c)
 	{
 		return (c >= '0' && c <= '9');
 	}
 
+	// Checar se e letra
 	bool isLetter (char c)
 	{
 		return ( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') );
 	}
 
+ 	// Compara strings
 	bool match (char* x, const char* y)
 	{
 		return (strcmp(x, y) == 0);
 	}
 
-	byte parseByte (char* str, int p, int n)
+	// Converter substring para byte
+	byte parseByte (char* str, int s, int f)
 	{
 		byte res = 0x0;
 		if (str)
 		{
-			int e = n-p;
+			int e = f-s;
 
-			for (int i = p; i < n; i++)
+			for (int i = s; i < f; i++)
 			{
-				res += (byte)(str[i] -48 ) * pow(10, n-i-1);
+				res += (byte)(str[i] - '0') * pow(10, f-i-1);
 			}
 		}
 		return (res);
 	}
 
-	byte getInstruction (char* str, int p, int n)
+	// Reconhecer instrucao
+	byte getInstruction (char* str, int s, int f)
 	{
 		byte res = 0x0;
 		if (str)
 		{
-			char* min = (char*)calloc(n-p+1, sizeof(char));
-			
-			for (int i = p; i < n; i++)
+			// Clonar substring para comparacao
+			char* min = (char*)calloc(f-s+1, sizeof(char));
+			for (int i = s; i < f; i++)
 			{
-				min[i-p] = str[i];
+				min[i-s] = str[i];
 			}
+
+			// Encontrar instrucao
 			if (match(min, "zeroL")) res = 0x0;
 			else if (match(min, "umL")) res = 0x1;
 			else if (match(min, "copiaA")) res = 0x2;
@@ -126,10 +138,13 @@ class Assembler
 			else if (match(min, "AoBn")) res = 0xD;
 			else if (match(min, "AoB")) res = 0xE;
 			else if (match(min, "nAonBn")) res = 0xF;
+
+			delete (min);
 		}
 		return (res);
 	}
 
+	// Linhas individuais
 	void assemble (char* line)
 	{
 		bool op = false;
@@ -139,89 +154,91 @@ class Assembler
 			op = false;
 			int n = strlen(line);
 
-			byte* cursor = NULL;
+			byte* cursor = NULL; // Selecionador
 
 			if (line[0] == 'A' || line[0] == 'a')
 			{
-				cursor = &A;
+				cursor = &A; // Seleciona A
 			}
 			else if (line[0] == 'B' || line[0] == 'b')
 			{
-				cursor = &B;
+				cursor = &B; // Seleciona B
 			}
 			else if (line[0] == 'W' || line[0] == 'w')
 			{
-				cursor = &W;
-				op = true;
+				cursor = &W; // Seleciona W
+				op = true; // E operacao
 			}
 
-			int s = 0;
-			int f = 0;
+			int s = 0; // Inicio substring
+			int f = 0; // Fim substring
 
-			int i = 1;
+			int i = 1; // Index
 
-			while (line[i] != '=')
+			while (line[i] != '=') // Pular '='
 			{
 				i++;
 			}
 
-			if (!op)
+			if (!op) // Nao e operador
 			{
-				while (!isNumber(line[i]))
+				while (!isNumber(line[i])) // Encontrar inicio do numero
 				{
 					i++;
 				}
 				s = i;
 	
-				while (isNumber(line[i]))
+				while (isNumber(line[i])) // Encontrar fim do numero
 				{
 					i++;
 				}
 				f = i;
 
-				*cursor = parseByte(line, s, f);
+				*cursor = parseByte(line, s, f); // Converte substring e grava no cursor
 			}
-			else
+			else // E operador
 			{
-				while (!isLetter(line[i]))
+				while (!isLetter(line[i])) // Encontrar inicio da instrucao
 				{
 					i++;
 				}
 				s = i;
 
-				while (isLetter(line[i]))
+				while (isLetter(line[i])) // Encontrar fim da instrucao
 				{
 					i++;
 				}
 				f = i;
 
-				*cursor = getInstruction (line, s, f);
-				tick = true;
+				*cursor = getInstruction (line, s, f); // Reconhecer instrucao
+				tick = true; // W foi atualizado
 			}
 		}
 	}
 
+ 	// Todas as linhas
 	void assemble (void)
 	{
-		int n = input->getSize() - 1;
+		int n = input->getSize() - 1; // Quantidade de linhas
 
-		output = new List();
+		output = new List(); // Lista de saida
 
 		for (int i = 1; i < n; i++)
 		{
-			char* line_in = input->get(i);
+			char* line_in = input->get(i); // Selecionar linha
 
-			assemble(line_in);
+			assemble(line_in); // Interpretar linha
 
-			if (tick)
+			if (tick) // Se W foi atualizado
 			{
-				tick = false;
-				char* line_out = new char[8];
-				snprintf (line_out, 8, "%1X%1X%1X", A,B,W);
-				output->insert(line_out);
-			}
+				char* line_out = new char[9](); // Linha de saida
+				snprintf (line_out, 8, "%1X%1X%1X", A,B,W); 	 // Converte para Hexa
+				output->insert(line_out); 						 // Grava linha na saida
+				tick = false; 									 // dismarca tick
 
-			delete (line_in);
+				delete (line_out);
+			}
+			delete (line_in); // Limpa memoria
 		}
 	}
 
@@ -233,26 +250,43 @@ int main (int argc, char** argv)
 {
 	if (argc != 2)
 	{
-		printf("argc:%d\n",argc);
-		std::cerr << "ERRO: A quantidade de parametros e invalida!\n"; 
+		std::cerr << "ERRO: Parametros invalidos!\nForneca o arquivo de entrada como parametro.\n"; 
 	}
-	else
+	else if (argv && argv[1])
 	{
+		// Nome do arquivo de entrada
 		char* infile = argv[1];
-		int n = strlen(infile);
-		char* outfile = new char[n+3];
+		int n = (int)strlen(infile);
+	 	
+		// Nome arquivo de saida
+		char* outfile = (char*)calloc(n+1,sizeof(char));
 
 		int i = 0;
-		while (i < n && infile[i] != '.')
+		while (i < n && infile[i] != '.') // Copia nome
 		{
 			outfile[i] = infile[i];
 			i++;
 		}
-		strcat(outfile, ".hex");
-		
+		strcat(outfile, ".hex"); // Adiciona .hex
+
+		// Recebe arquivo de entrada
 		Assembler* as = new Assembler(infile);
+ 
+	 	// Converter entrada para Hexa
 		as->assemble();
+
+		// Gravar arquivo de saida
 		as->Export(outfile);
+
+		// Limpar memoria
+		if (outfile)
+		{
+			delete(outfile);
+		}
+		if (as)
+		{
+			delete(as);
+		}
 	}
 	return (0);
 }

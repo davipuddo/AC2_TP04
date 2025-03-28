@@ -4,23 +4,32 @@
 #include <iostream>
 #include <cstring>
 
+// Celula
 class Cell
 {
 	public:
 	char* str;
 	Cell* link;
 	
+	// Construtor
 	Cell (char* x)
 	{
 		if (x)
 		{
-			this->str = (char*)calloc(strlen(x)+1, sizeof(char));
-			strcpy(this->str, x);
-
+			this->str = NULL;
 			link = NULL;
+
+			int n = strlen(x);
+			this->str = new char[n+1]();
+
+			if (this->str)
+			{
+				strcpy(this->str, x);
+			}
 		}
 	}
 
+	// Destrutor
 	~Cell ()
 	{
 		if (str)
@@ -31,14 +40,28 @@ class Cell
 	}
 };
 
+// Lista
 class List
 {
 	private:
+
+	// Atributos
 	Cell* head;
 	Cell* tail;
 	int n;
 
+	void free (Cell* ptr)
+	{
+		if (ptr)
+		{
+			free(ptr->link);
+			delete(ptr);
+		}
+	}
+
 	public:
+
+	// Construtor
 	List ()
 	{
 		this->head = NULL;
@@ -46,29 +69,24 @@ class List
 		this->n = 0;
 	}
 
+	// Destrutor
 	~List ()
 	{
-		
-	}
-
-	List* clone (void)
-	{
-		List* res = new List();
-		Cell* ptr = head;
-
-		while (ptr)
+		if (head)
 		{
-			res->insert(ptr->str);
-			ptr = ptr->link;
+			free (head);
+			head = NULL;
+			tail = NULL;
 		}
-		return (res);
 	}
 
+	// Quantidade de celulas
 	int getSize (void)
 	{
 		return(n);
 	}
 
+	// Inserir linha
 	void insert (char* x)
 	{
 		if (x)
@@ -87,22 +105,27 @@ class List
 		}
 	}
 
+	// Remover linha
 	char* remove (void)
 	{
 		char* res = NULL;
 		if (head && tail)
 		{
 			res = (char*)calloc(strlen(head->str)+1, sizeof(char));
-			strcpy(res, head->str);
+			if (res)
+			{
+				strcpy(res, head->str);
 
-			Cell* tmp = head;
-			head = head->link;
-			delete(tmp);
+				Cell* tmp = head;
+				head = head->link;
+				delete(tmp);
+			}
 		}
 
 		return (res);
 	}
 
+	// Receber linha em uma posicao [p]
 	char* get (int p)
 	{
 		char* res = NULL;
@@ -120,28 +143,13 @@ class List
 			if (ptr)
 			{
 				res = (char*)calloc(strlen(ptr->str)+1, sizeof(char));
-				strcpy(res, ptr->str);
+				if (res)
+				{
+					strcpy(res, ptr->str);
+				}
 			}
 		}
 		return (res);
-	}
-
-	void print (Cell* ptr)
-	{
-		if (ptr && ptr->str)
-		{
-			std::cout << "[" << ptr->str << "] ";
-			print(ptr->link);
-		}
-	}
-
-	void print ()
-	{
-		if (head)
-		{
-			print(head);
-		}
-		std::cout << "\n";
 	}
 };
 

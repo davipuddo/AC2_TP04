@@ -8,10 +8,13 @@
 class File
 {
 	private:
+	
+	// Atributos
 	const char* filename;
 
 	public:
 
+	// Construtor
 	File (const char* filename)
 	{
 		if (filename)
@@ -20,6 +23,7 @@ class File
 		}
 	}
 
+	// Ler lista de um arquivo
 	List* read (void)
 	{
 		List* res = new List();
@@ -33,18 +37,12 @@ class File
 			{
 				res->insert(line.data());
 			}
+			fs.close();
 		}
 		return (res);
 	}
 
-	void setFilename(const char* filename)
-	{
-		if (filename)
-		{
-			this->filename = filename;
-		}
-	}
-
+	// Gravar lista em um arquivo
 	void write (List* list)
 	{
 		if (list)
@@ -60,9 +58,18 @@ class File
 					fs << list->remove();
 					fs << "\n";
 				}
+
+				// Adicionar espaco no fim
 				char* last = list->remove();
 				strcat(last, " ");
 				fs << last;
+
+				if (last)
+				{
+					delete (last);
+				}
+
+				fs.close();
 			}
 		}
 	}
