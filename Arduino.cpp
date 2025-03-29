@@ -83,13 +83,13 @@ void execInst(){
   else if((*ins).p3==0x6) W = X & ((byte)~Y)&0x0F;
   else if((*ins).p3==0x7) W = Y & ((byte)~X)&0x0F;
   else if((*ins).p3==0x8) W = X ^ Y;
-  else if((*ins).p3==0x9) W = (((byte)~X)&0x0F) ^ (((byte)~X)&0x0F);
-  else if((*ins).p3==0xA) W = ~((((byte)~X)&0x0F) ^ (((byte)~X)&0x0F)) & 0x0F;
+  else if((*ins).p3==0x9) W = (((byte)~X)&0x0F) ^ (((byte)~Y)&0x0F);
+  else if((*ins).p3==0xA) W = ~((((byte)~X)&0x0F) ^ (((byte)~Y)&0x0F)) & 0x0F;
   else if((*ins).p3==0xB) W = X & Y;
   else if((*ins).p3==0xC) W = ~(X & Y) & 0x0F;
   else if((*ins).p3==0xD) W = ~(X | Y) & 0x0F;
   else if((*ins).p3==0xE) W = X | Y;
-  else if((*ins).p3==0xF) W = X & X;
+  else if((*ins).p3==0xF) W = X & Y;
   else{
     Serial.println("Instrucao desconhecida");
     W = 0x0;

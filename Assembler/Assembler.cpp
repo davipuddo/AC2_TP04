@@ -7,8 +7,8 @@
 #include <cstdint>
 
 #define byte uint8_t
-#define A mem[0]
-#define B mem[1]
+#define X mem[0]
+#define Y mem[1]
 #define W mem[2]
 
 class Assembler
@@ -30,7 +30,7 @@ class Assembler
 		output = NULL;
 		tick = false;
 
-		mem = new byte[3](); // mem[0] = A; mem[1] = B; mem[2] = W;
+		mem = new byte[3](); // mem[0] = X; mem[1] = Y; mem[2] = W;
 
 		for (int i = 0; i < 3; i++)
 		{
@@ -156,15 +156,17 @@ class Assembler
 
 			byte* cursor = NULL; // Selecionador
 
-			if (line[0] == 'A' || line[0] == 'a')
+			char c = line[0]; // Primeiro valor
+
+			if (c == 'X' || c == 'x' || c == 'A' || c == 'a')
 			{
-				cursor = &A; // Seleciona A
+				cursor = &X; // Seleciona X
 			}
-			else if (line[0] == 'B' || line[0] == 'b')
+			else if (c == 'Y' || c == 'y' || c == 'B' || c == 'b')
 			{
-				cursor = &B; // Seleciona B
+				cursor = &Y; // Seleciona Y
 			}
-			else if (line[0] == 'W' || line[0] == 'w')
+			else if (c == 'W' || c == 'w')
 			{
 				cursor = &W; // Seleciona W
 				op = true; // E operacao
@@ -232,7 +234,7 @@ class Assembler
 			if (tick) // Se W foi atualizado
 			{
 				char* line_out = new char[9](); // Linha de saida
-				snprintf (line_out, 8, "%1X%1X%1X", A,B,W); 	 // Converte para Hexa
+				snprintf (line_out, 8, "%1X%1X%1X", X,Y,W); 	 // Converte para Hexa
 				output->insert(line_out); 						 // Grava linha na saida
 				tick = false; 									 // dismarca tick
 
